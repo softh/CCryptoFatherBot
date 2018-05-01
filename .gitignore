@@ -1,0 +1,13 @@
+*.iml
+.gradle
+.idea
+.DS_Store
+build
+captures
+reports
+libs
+/local.properties
+/gradle.properties
+/application.properties
+out/
+src/main/java/com/softhapps/bot/ApplicationProperties.java

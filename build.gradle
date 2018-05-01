@@ -1,0 +1,81 @@
+group 'CryptoBot'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+def telegramBotsVersion = "3.6"
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    compile 'com.squareup.retrofit2:retrofit:2.3.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+    compile "org.telegram:telegrambots:$telegramBotsVersion"
+    compile "org.telegram:telegrambots-abilities:$telegramBotsVersion"
+
+}
+
+buildscript {
+    def javaPoetVersion = "1.9.0"
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.squareup:javapoet:$javaPoetVersion"
+    }
+}
+
+
+import com.squareup.javapoet.FieldSpec
+import com.squareup.javapoet.JavaFile
+import com.squareup.javapoet.TypeSpec
+
+import javax.lang.model.element.Modifier
+
+task generateApplicationPropertyClass() {
+    println "Generate properties class..."
+
+    println "Load properties from file..."
+    Properties properties = new Properties()
+    File propertiesFile = new File('application.properties')
+    propertiesFile.withInputStream {
+        properties.load(it)
+    }
+
+    println "Generate java source file..."
+    TypeSpec helloWorld = TypeSpec.classBuilder("ApplicationProperties")
+            .addModifiers(Modifier.PUBLIC)
+            .addJavadoc("Automatically generated class\n\n@author softh\n")
+
+            .addField(FieldSpec.builder(String.class, "CURRENCY_API_URL")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+            .initializer('$S', properties.getProperty("currencyApiUrl"))
+            .build())
+
+            .addField(FieldSpec.builder(String.class, "BOT_NAME")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+            .initializer('$S', properties.getProperty("botName"))
+            .build())
+
+            .addField(FieldSpec.builder(String.class, "BOT_TOKEN")
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+            .initializer('$S', properties.getProperty("botToken"))
+            .build())
+
+            .build()
+
+    JavaFile javaFile = JavaFile.builder("com.softhapps.bot", helloWorld)
+            .build()
+    javaFile.writeTo(new File("${project.projectDir}/src/main/java/"))
+
+
+    println 'Done!'
+}
+
+build.dependsOn generateApplicationPropertyClass
